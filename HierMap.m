@@ -79,58 +79,7 @@ for k  = 1:length(sp_num)
                 seg_samps_temp = seg_samps;
             end
             
-            if strcmp(par.method,'Div')
-                if par.RGB
-                 %find rgb pdf of current region
-                 imap_reg = orig_image(input_mask==sp_num(k),:);
-                 img_r = imap_reg(:,:,1); img_g = imap_reg(:,:,2);
-                 img_b = imap_reg(:,:,3);
-                 imap_r = hist(img_r(:),par.cbins) + eps;
-                 imap_g = hist(img_g(:),par.cbins) + eps;
-                 imap_b= hist(img_b(:),par.cbins) + eps;
-                 %concatenate rgb
-                 imap_hist = [imap_r,imap_g,imap_b];
-                 %filter w/ parzen window to make pdf
-                 PW_h = 4;
-                 imap_hist = conv(parzenwin(PW_h),imap_hist);
-                 imap_hist = imap_hist(round(PW_h/2):(end-round(PW_h/2)));
-                 %normalize histogram into a pdf
-                 p_imap = imap_hist/sum(imap_hist(:));
-                 
-                 %rgb pdf of neighbor
-                 %build rgb histogram
-                 diff_reg = orig_image(input_mask==seg_nbrhd(kk),:);
-                 img_r = diff_reg(:,:,1); diff_reg = imap_reg(:,:,2);
-                 img_b = diff_reg(:,:,3);
-                 diff_r = hist(img_r(:),par.cbins) + eps;
-                 diff_g = hist(img_g(:),par.cbins) + eps;
-                 diff_b = hist(img_r(:),par.cbins) + eps;
-                 %concatenate intensity and texture
-                 diff_hist = [diff_int,diff_txt];
-                 %filter w/ parzen window to make pdf
-                 PW_h = 4;
-                 diff_hist = conv(parzenwin(PW_h),diff_hist);
-                 diff_hist = diff_hist(round(PW_h/2):(end-round(PW_h/2)));
-                 %normalize to create pdf
-                 p_diff = diff_hist/sum(diff_hist(:));
-                 
-                else
-                    
-                %build intensity histogram
-                diff_reg = orig_image(input_mask==seg_nbrhd(kk));
-                diff_int = hist(diff_reg(:),par.ibins) + eps;
-                %concatenate intensity and texture
-                diff_hist = [diff_int,diff_txt];
-                %filter w/ parzen window to make pdf
-                PW_h = 4;
-                diff_hist = conv(parzenwin(PW_h),diff_hist);
-                diff_hist = diff_hist(round(PW_h/2):(end-round(PW_h/2)));
-                %normalize to create pdf
-                p_diff = diff_hist/sum(diff_hist(:));
-                %save J-divergence
-                %put value in simMatrix
-                simMat(k,seg_nbrhd(kk)) = (sum((p_imap - p_diff).*(log(p_imap) - log(p_diff))))/scalingFactor;
-            elseif strcmp(par.method,'Mean')
+           if strcmp(par.method,'Mean')
                 M1 = median(seg_samps_temp,1);
                 M2 = median(nbr_samps_temp,1);
                 distM = sqrt((M1-M2)*(M1-M2)');
@@ -149,7 +98,7 @@ for k  = 1:length(sp_num)
             end
         end
     end
-    if strcmp(par.comp,'Lac')||strcmp(par.comp,'Edist')||strcmp(par.comp,'Jdiv')||strcmp(par.comp,'Mean')||strcmp(par.comp,'Median')||strcmp(par.comp,'Nearest')
+    if strcmp(par.comp,'Div')||strcmp(par.comp,'Mean')||strcmp(par.comp,'Median')||strcmp(par.comp,'Nearest')
         simMat(simMat==0)=inf;
     end
 end
